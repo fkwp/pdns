@@ -262,14 +262,14 @@ void LdapBackend::lookup_strict( const QType &qtype, const DNSName &qname, DNSPa
         stringtok( parts, qesc, "." );
         len = qesc.length();
 
-         if( parts.size() == 6 && len > 13 && qesc.substr( len - 13, 13 ) == ".in-addr.arpa" )   // IPv4 reverse lookups
+        if( parts.size() == 6 && len > 13 && qesc.substr( len - 13, 13 ) == ".in-addr.arpa" )   // IPv4 reverse lookups
         {
         	filter = "aRecord=" + ptr2ip4( parts );
         	if( qtype.getCode() != QType::ANY ) {
-		  attronly[0] = getArg( "zoneNameAttribut" ).c_str();
+		        attronly[0] = getArg( "zoneNameAttribut" ).c_str();
 		}
 		else {
-		  attronly[0] = "associatedDomain";
+		        attronly[0] = "associatedDomain";
 		}
         	
         	attributes = attronly;
@@ -278,20 +278,20 @@ void LdapBackend::lookup_strict( const QType &qtype, const DNSName &qname, DNSPa
         {
         	filter = "aAAARecord=" + ptr2ip6( parts );
         	if( qtype.getCode() != QType::ANY ) {
-		  attronly[0] = getArg( "zoneNameAttribut" ).c_str();
+		        attronly[0] = getArg( "zoneNameAttribut" ).c_str();
 		}
 		else {
-		  attronly[0] = "associatedDomain";
+		        attronly[0] = "associatedDomain";
 		}
         	attributes = attronly;
         }
         else   // IPv4 and IPv6 lookups
 	  {
         	if( qtype.getCode() != QType::ANY ) {
-		  filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
+		        filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
 		}
 		else {
-		  filter = "associatedDomain=" + qesc;
+		        filter = "associatedDomain=" + qesc;
 		}
 		  
         	if( qtype.getCode() != QType::ANY )
@@ -321,10 +321,10 @@ void LdapBackend::lookup_tree( const QType &qtype, const DNSName &qname, DNSPack
 
         qesc = toLower( m_pldap->escape( qname.toStringRootDot() ) );
 	if( qtype.getCode() != QType::ANY ) {
-	  filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
+	        filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
 	}
 	else {
-	  filter = "associatedDomain=" + qesc;
+	        filter = "associatedDomain=" + qesc;
 	}
 
         if( qtype.getCode() != QType::ANY )
