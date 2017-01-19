@@ -226,7 +226,12 @@ void LdapBackend::lookup_simple( const QType &qtype, const DNSName &qname, DNSPa
 
 
         qesc = toLower( m_pldap->escape( qname.toStringRootDot() ) );
-        filter = "associatedDomain=" + qesc;
+	if( qtype.getCode() != QType::ANY ) {
+	        filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
+	}
+	else {
+	        filter = "associatedDomain=" + qesc;
+	}
 
         if( qtype.getCode() != QType::ANY )
         {
@@ -260,18 +265,35 @@ void LdapBackend::lookup_strict( const QType &qtype, const DNSName &qname, DNSPa
          if( parts.size() == 6 && len > 13 && qesc.substr( len - 13, 13 ) == ".in-addr.arpa" )   // IPv4 reverse lookups
         {
         	filter = "aRecord=" + ptr2ip4( parts );
-        	attronly[0] = "associatedDomain";
+        	if( qtype.getCode() != QType::ANY ) {
+		  attronly[0] = getArg( "zoneNameAttribut" ).c_str();
+		}
+		else {
+		  attronly[0] = "associatedDomain";
+		}
+        	
         	attributes = attronly;
         }
         else if( parts.size() == 34 && len > 9 && ( qesc.substr( len - 9, 9 ) == ".ip6.arpa" ) )   // IPv6 reverse lookups
         {
         	filter = "aAAARecord=" + ptr2ip6( parts );
-        	attronly[0] = "associatedDomain";
+        	if( qtype.getCode() != QType::ANY ) {
+		  attronly[0] = getArg( "zoneNameAttribut" ).c_str();
+		}
+		else {
+		  attronly[0] = "associatedDomain";
+		}
         	attributes = attronly;
         }
         else   // IPv4 and IPv6 lookups
-        {
-        	filter = "associatedDomain=" + qesc;
+	  {
+        	if( qtype.getCode() != QType::ANY ) {
+		  filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
+		}
+		else {
+		  filter = "associatedDomain=" + qesc;
+		}
+		  
         	if( qtype.getCode() != QType::ANY )
         	{
         		attr = qtype.getName() + "Record";
@@ -298,7 +320,12 @@ void LdapBackend::lookup_tree( const QType &qtype, const DNSName &qname, DNSPack
 
 
         qesc = toLower( m_pldap->escape( qname.toStringRootDot() ) );
-        filter = "associatedDomain=" + qesc;
+	if( qtype.getCode() != QType::ANY ) {
+	  filter = getArg( "zoneNameAttribut" ) + "=" + qesc;
+	}
+	else {
+	  filter = "associatedDomain=" + qesc;
+	}
 
         if( qtype.getCode() != QType::ANY )
         {
@@ -489,7 +516,11 @@ bool LdapBackend::get( DNSResourceRecord &rr )
 
 
         // search for SOARecord of domain
-        filter = "(&(associatedDomain=" + toLower( m_pldap->escape( domain ) ) + ")(SOARecord=*))";
+	filter = "(&(" + getArg( "zoneNameAttribut" ) + "=" + toLower( m_pldap->escape( domain ) ) + ")(SOARecord=*))";
+
+        L << Logger::Info << domain << "  " << ", filter: " << filter << endl ;
+	
+	
         m_msgid = m_pldap->search( getArg( "basedn" ), LDAP_SCOPE_SUBTREE, filter, attronly );
         m_pldap->getSearchEntry( m_msgid, m_result );
 
@@ -528,6 +559,7 @@ public:
         	declare( suffix, "host", "One or more LDAP server with ports or LDAP URIs (separated by spaces)","ldap://127.0.0.1:389/" );
         	declare( suffix, "starttls", "Use TLS to encrypt connection (unused for LDAP URIs)", "no" );
         	declare( suffix, "basedn", "Search root in ldap tree (must be set)","" );
+        	declare( suffix, "zoneNameAttribut", "Zone name attribut in SOA LDAP object", "associatedDomain" );
         	declare( suffix, "basedn-axfr-override", "Override base dn for AXFR subtree search", "no" );
         	declare( suffix, "binddn", "User dn for non anonymous binds","" );
         	declare( suffix, "secret", "User password for non anonymous binds", "" );
